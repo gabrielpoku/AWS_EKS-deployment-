@@ -1,5 +1,5 @@
 
-# Deploy Kubernetes resources to Amazon EKS using Azure DevOps
+# Deploy Kubernete to EKS using Azure DevOps
 I deploy a containerized application to Amazon EKS cluster from Azure DevOps using Helm chart. 
 It can be further extended by modifying the pipeline template shared here to use the Azure pipelines service connection for AWS in order to query and use data from AWS Cloud.
 
