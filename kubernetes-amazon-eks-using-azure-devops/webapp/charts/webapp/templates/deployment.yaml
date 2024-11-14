@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{.Values.application.name}}
+  labels:
+    app: {{.Values.application.name}}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+spec:
+  replicas: {{.Values.replicaCount}}
+  selector:
+    matchLabels:
+      app: {{.Values.application.name}}
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: {{.Values.application.name}}
+      annotations:
+        seccomp.security.alpha.kubernetes.io/pod: "docker/default"
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsUser: 21001
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Chart.AppVersion }}"
+          imagePullPolicy: {{.Values.image.pullPolicy}}
+          securityContext:
+            runAsNonRoot: true
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+               - NET_RAW
+               - ALL
+          resources:
+            limits:
+              cpu: 100m
+              memory: 128Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3080
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          ports:
+            - containerPort: 3080
+          volumeMounts:
+            - name: index-file
+              mountPath: /www
+      volumes:
+      - name: index-file
+        configMap:
+          name: index-html-configmap
+status: {}
